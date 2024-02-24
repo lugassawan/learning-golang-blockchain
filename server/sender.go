@@ -11,7 +11,7 @@ import (
 	"github.com/lugassawan/learning-golang-blockchain/transaction"
 )
 
-func (s *server) sendVersion(addr string, blockchain *blockchain.Blockchain) {
+func (s *Server) sendVersion(addr string, blockchain *blockchain.Blockchain) {
 	bestHeight := blockchain.GetBestHeight()
 	payload := s.gobEncode(verzion{nodeVersion, bestHeight, s.nodeAddress})
 
@@ -20,7 +20,7 @@ func (s *server) sendVersion(addr string, blockchain *blockchain.Blockchain) {
 	s.sendData(addr, request)
 }
 
-func (s *server) sendData(addr string, data []byte) {
+func (s *Server) sendData(addr string, data []byte) {
 	conn, err := net.Dial(protocol, addr)
 	if err != nil {
 		fmt.Printf("%s is not available\n", addr)
@@ -45,7 +45,7 @@ func (s *server) sendData(addr string, data []byte) {
 	}
 }
 
-func (s *server) sendAddr(address string) {
+func (s *Server) sendAddr(address string) {
 	nodes := addr{s.knownNodes}
 	nodes.addrList = append(nodes.addrList, s.nodeAddress)
 	payload := s.gobEncode(nodes)
@@ -54,7 +54,7 @@ func (s *server) sendAddr(address string) {
 	s.sendData(address, request)
 }
 
-func (s *server) sendBlock(addr string, b *blockchain.Block) {
+func (s *Server) sendBlock(addr string, b *blockchain.Block) {
 	data := block{s.nodeAddress, b.Serialize()}
 	payload := s.gobEncode(data)
 	request := append(s.commandToBytes("block"), payload...)
@@ -62,7 +62,7 @@ func (s *server) sendBlock(addr string, b *blockchain.Block) {
 	s.sendData(addr, request)
 }
 
-func (s *server) sendInv(address, kind string, items [][]byte) {
+func (s *Server) sendInv(address, kind string, items [][]byte) {
 	inventory := inv{s.nodeAddress, kind, items}
 	payload := s.gobEncode(inventory)
 	request := append(s.commandToBytes("inv"), payload...)
@@ -70,21 +70,21 @@ func (s *server) sendInv(address, kind string, items [][]byte) {
 	s.sendData(address, request)
 }
 
-func (s *server) sendGetBlocks(address string) {
+func (s *Server) sendGetBlocks(address string) {
 	payload := s.gobEncode(getblocks{s.nodeAddress})
 	request := append(s.commandToBytes("getblocks"), payload...)
 
 	s.sendData(address, request)
 }
 
-func (s *server) sendGetData(address, kind string, id []byte) {
+func (s *Server) sendGetData(address, kind string, id []byte) {
 	payload := s.gobEncode(getdata{s.nodeAddress, kind, id})
 	request := append(s.commandToBytes("getdata"), payload...)
 
 	s.sendData(address, request)
 }
 
-func (s *server) sendTx(addr string, tnx *transaction.Transaction) {
+func (s *Server) SendTx(addr string, tnx *transaction.Transaction) {
 	data := tx{s.nodeAddress, tnx.Serialize()}
 	payload := s.gobEncode(data)
 	request := append(s.commandToBytes("tx"), payload...)

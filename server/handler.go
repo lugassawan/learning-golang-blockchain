@@ -14,7 +14,7 @@ import (
 	"github.com/lugassawan/learning-golang-blockchain/transaction"
 )
 
-func (s *server) handleAddr(request []byte) {
+func (s *Server) handleAddr(request []byte) {
 	var buff bytes.Buffer
 	var payload addr
 
@@ -30,7 +30,7 @@ func (s *server) handleAddr(request []byte) {
 	s.requestBlocks()
 }
 
-func (s *server) handleBlock(request []byte, bc *blockchain.Blockchain) {
+func (s *Server) handleBlock(request []byte, bc *blockchain.Blockchain) {
 	var buff bytes.Buffer
 	var payload block
 
@@ -60,7 +60,7 @@ func (s *server) handleBlock(request []byte, bc *blockchain.Blockchain) {
 	}
 }
 
-func (s *server) handleInv(request []byte, bc *blockchain.Blockchain) {
+func (s *Server) handleInv(request []byte, bc *blockchain.Blockchain) {
 	var buff bytes.Buffer
 	var payload inv
 
@@ -97,7 +97,7 @@ func (s *server) handleInv(request []byte, bc *blockchain.Blockchain) {
 	}
 }
 
-func (s *server) handleGetBlocks(request []byte, bc *blockchain.Blockchain) {
+func (s *Server) handleGetBlocks(request []byte, bc *blockchain.Blockchain) {
 	var buff bytes.Buffer
 	var payload getblocks
 
@@ -112,7 +112,7 @@ func (s *server) handleGetBlocks(request []byte, bc *blockchain.Blockchain) {
 	s.sendInv(payload.addrFrom, "block", blocks)
 }
 
-func (s *server) handleGetData(request []byte, bc *blockchain.Blockchain) {
+func (s *Server) handleGetData(request []byte, bc *blockchain.Blockchain) {
 	var buff bytes.Buffer
 	var payload getdata
 
@@ -136,12 +136,12 @@ func (s *server) handleGetData(request []byte, bc *blockchain.Blockchain) {
 		txID := hex.EncodeToString(payload.id)
 		tx := s.mempool[txID]
 
-		s.sendTx(payload.addrFrom, tx)
+		s.SendTx(payload.addrFrom, tx)
 		// delete(s.mempool, txID)
 	}
 }
 
-func (s *server) handleTx(request []byte, bc *blockchain.Blockchain) {
+func (s *Server) handleTx(request []byte, bc *blockchain.Blockchain) {
 	var buff bytes.Buffer
 	var payload tx
 
@@ -206,7 +206,7 @@ func (s *server) handleTx(request []byte, bc *blockchain.Blockchain) {
 	}
 }
 
-func (s *server) handleVersion(request []byte, bc *blockchain.Blockchain) {
+func (s *Server) handleVersion(request []byte, bc *blockchain.Blockchain) {
 	var buff bytes.Buffer
 	var payload verzion
 
@@ -232,7 +232,7 @@ func (s *server) handleVersion(request []byte, bc *blockchain.Blockchain) {
 	}
 }
 
-func (s *server) handleConnection(conn net.Conn, bc *blockchain.Blockchain) {
+func (s *Server) handleConnection(conn net.Conn, bc *blockchain.Blockchain) {
 	request, err := io.ReadAll(conn)
 	if err != nil {
 		log.Panic(err)

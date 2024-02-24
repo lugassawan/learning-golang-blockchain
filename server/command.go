@@ -2,7 +2,7 @@ package server
 
 import "fmt"
 
-func (s *server) commandToBytes(command string) []byte {
+func (s *Server) commandToBytes(command string) []byte {
 	var bytes [commandLength]byte
 
 	for i, c := range command {
@@ -12,7 +12,7 @@ func (s *server) commandToBytes(command string) []byte {
 	return bytes[:]
 }
 
-func (s *server) bytesToCommand(bytes []byte) string {
+func (s *Server) bytesToCommand(bytes []byte) string {
 	var command []byte
 
 	for _, b := range bytes {
@@ -24,11 +24,11 @@ func (s *server) bytesToCommand(bytes []byte) string {
 	return fmt.Sprintf("%s", command)
 }
 
-func (s *server) extractCommand(request []byte) []byte {
+func (s *Server) extractCommand(request []byte) []byte {
 	return request[:commandLength]
 }
 
-func (s *server) requestBlocks() {
+func (s *Server) requestBlocks() {
 	for _, node := range s.knownNodes {
 		s.sendGetBlocks(node)
 	}

@@ -17,7 +17,8 @@ const (
 	commandLength = 12
 )
 
-type server struct {
+type Server struct {
+	nodeId          string
 	nodeAddress     string
 	miningAddress   string
 	knownNodes      []string
@@ -25,27 +26,37 @@ type server struct {
 	mempool         map[string]*transaction.Transaction
 }
 
-// StartServer starts a node
-func StartServer(nodeId, minerAddress string) {
-	svc := server{
+// InitServer creates Server instance with empty miner address
+func InitServer(nodeId string) *Server {
+	return &Server{
+		nodeId,
 		fmt.Sprintf("localhost:%s", nodeId),
-		minerAddress,
+		"",
 		[]string{"localhost:3000"},
 		[][]byte{},
 		make(map[string]*transaction.Transaction),
 	}
+}
 
-	ln, err := net.Listen(protocol, svc.nodeAddress)
+func (s *Server) KnownNodes() []string {
+	return s.knownNodes
+}
+
+// Start starts a node
+func (s *Server) Start(minerAddress string) {
+	s.miningAddress = minerAddress
+
+	ln, err := net.Listen(protocol, s.nodeAddress)
 	if err != nil {
 		log.Panic(err)
 	}
 
 	defer ln.Close()
 
-	bc := blockchain.NewBlockchain(nodeId)
+	bc := blockchain.NewBlockchain(s.nodeId)
 
-	if svc.nodeAddress != svc.knownNodes[0] {
-		svc.sendVersion(svc.knownNodes[0], bc)
+	if s.nodeAddress != s.knownNodes[0] {
+		s.sendVersion(s.knownNodes[0], bc)
 	}
 
 	for {
@@ -54,11 +65,11 @@ func StartServer(nodeId, minerAddress string) {
 			log.Panic(err)
 		}
 
-		go svc.handleConnection(conn, bc)
+		go s.handleConnection(conn, bc)
 	}
 }
 
-func (s *server) gobEncode(data interface{}) []byte {
+func (s *Server) gobEncode(data interface{}) []byte {
 	var buff bytes.Buffer
 
 	enc := gob.NewEncoder(&buff)
@@ -70,7 +81,7 @@ func (s *server) gobEncode(data interface{}) []byte {
 	return buff.Bytes()
 }
 
-func (s *server) nodeIsKnown(addr string) bool {
+func (s *Server) nodeIsKnown(addr string) bool {
 	for _, node := range s.knownNodes {
 		if node == addr {
 			return true
