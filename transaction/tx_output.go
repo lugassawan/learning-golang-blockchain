@@ -72,3 +72,8 @@ func (outs TXOutputs) Serialize() []byte {
 
 	return buff.Bytes()
 }
+
+// Add adds TXOutput
+func (outs TXOutputs) Add(txOutput TXOutput) {
+	outs.outputs = append(outs.outputs, txOutput)
+}
