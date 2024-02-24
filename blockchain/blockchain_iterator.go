@@ -1,7 +1,7 @@
 package blockchain
 
 import (
-	"fmt"
+	"log"
 
 	"go.etcd.io/bbolt"
 )
@@ -23,7 +23,7 @@ func (i *BlockchainIterator) Next() *Block {
 	})
 
 	if err != nil {
-		fmt.Println("DB View Err : " + err.Error())
+		log.Panic(err)
 	}
 
 	i.currentHash = block.PrevBlockHash()

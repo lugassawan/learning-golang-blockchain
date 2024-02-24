@@ -95,6 +95,11 @@ func NewBlockchain(nodeId string) *Blockchain {
 	return &Blockchain{tip, db}
 }
 
+// GetDB returns instance of bbolt.DB
+func (bc *Blockchain) GetDB() *bbolt.DB {
+	return bc.db
+}
+
 // AddBlock saves the block into the blockchain
 func (bc *Blockchain) AddBlock(block *Block) {
 	err := bc.db.Update(func(tx *bbolt.Tx) error {

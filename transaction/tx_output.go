@@ -60,6 +60,10 @@ func DeserializeOutputs(data []byte) TXOutputs {
 	return outputs
 }
 
+func (out *TXOutputs) Outputs() []TXOutput {
+	return out.outputs
+}
+
 // Serialize serializes TXOutputs
 func (outs TXOutputs) Serialize() []byte {
 	var buff bytes.Buffer
