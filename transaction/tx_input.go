@@ -14,6 +14,11 @@ type TXInput struct {
 	pubkey    []byte
 }
 
+// NewTXInput create a new TXInput
+func NewTXInput(txId []byte, vout int, signature []byte, publicKey []byte) *TXInput {
+	return &TXInput{txId, vout, signature, publicKey}
+}
+
 func (ti *TXInput) TxId() []byte {
 	return ti.txId
 }

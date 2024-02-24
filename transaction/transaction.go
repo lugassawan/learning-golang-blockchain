@@ -42,6 +42,14 @@ func NewCoinbaseTX(to, data string) *Transaction {
 	return &tx
 }
 
+// BuildTransaction creates a coinbase transaction
+func BuildTransaction(inputs []TXInput, outputs []TXOutput) *Transaction {
+	tx := Transaction{nil, inputs, outputs}
+	tx.id = tx.Hash()
+
+	return &tx
+}
+
 // DeserializeTransaction deserializes a transaction
 func DeserializeTransaction(data []byte) Transaction {
 	var transaction Transaction
