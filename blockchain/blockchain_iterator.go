@@ -26,6 +26,6 @@ func (i *BlockchainIterator) Next() *Block {
 		fmt.Println("DB View Err : " + err.Error())
 	}
 
-	i.currentHash = block.PrevBlockHash
+	i.currentHash = block.PrevBlockHash()
 	return block
 }

@@ -3,29 +3,35 @@ package blockchain
 import (
 	"bytes"
 	"encoding/gob"
-	"fmt"
+	"log"
 	"time"
+
+	"github.com/lugassawan/learning-golang-blockchain/transaction"
+	"github.com/lugassawan/learning-golang-blockchain/utils"
 )
 
 type Block struct {
-	Timestamp     int64
-	Data          []byte
-	PrevBlockHash []byte
-	Hash          []byte
-	Nonce         int
+	timestamp     int64
+	transactions  []*transaction.Transaction
+	prevBlockHash []byte
+	hash          []byte
+	nonce         int
+	height        int
 }
 
-func NewGenesisBlock() *Block {
-	return NewBlock("Genesis Block", []byte{})
+// NewGenesisBlock creates and returns genesis Block
+func NewGenesisBlock(coinbase *transaction.Transaction) *Block {
+	return NewBlock([]*transaction.Transaction{coinbase}, []byte{}, 0)
 }
 
-func NewBlock(data string, prevBlockHash []byte) *Block {
-	block := &Block{time.Now().Unix(), []byte(data), prevBlockHash, []byte{}, 0}
+// NewBlock creates and returns Block
+func NewBlock(transactions []*transaction.Transaction, prevBlockHash []byte, height int) *Block {
+	block := &Block{time.Now().Unix(), transactions, prevBlockHash, []byte{}, 0, height}
 	pow := NewProofOfWork(block)
 	nonce, hash := pow.Run()
 
-	block.Hash = hash[:]
-	block.Nonce = nonce
+	block.hash = hash[:]
+	block.nonce = nonce
 
 	return block
 }
@@ -36,10 +42,34 @@ func DeserializeBlock(d []byte) *Block {
 	decoder := gob.NewDecoder(bytes.NewReader(d))
 
 	if err := decoder.Decode(&block); err != nil {
-		fmt.Println("DeserializeBlock Err : " + err.Error())
+		log.Panic(err)
 	}
 
 	return &block
+}
+
+func (b *Block) Timestamp() int64 {
+	return b.timestamp
+}
+
+func (b *Block) Transactions() []*transaction.Transaction {
+	return b.transactions
+}
+
+func (b *Block) PrevBlockHash() []byte {
+	return b.prevBlockHash
+}
+
+func (b *Block) Hash() []byte {
+	return b.hash
+}
+
+func (b *Block) Nonce() int {
+	return b.nonce
+}
+
+func (b *Block) Height() int {
+	return b.height
 }
 
 func (b *Block) Serialize() []byte {
@@ -47,8 +77,20 @@ func (b *Block) Serialize() []byte {
 	encoder := gob.NewEncoder(&result)
 
 	if err := encoder.Encode(b); err != nil {
-		fmt.Println("Serialize Err : " + err.Error())
+		log.Panic(err)
 	}
 
 	return result.Bytes()
+}
+
+func (b *Block) HashTransactions() []byte {
+	var transactions [][]byte
+
+	for _, tx := range b.transactions {
+		transactions = append(transactions, tx.Serialize())
+	}
+
+	mTree := utils.NewMerkleTree(transactions)
+
+	return mTree.RootNode().Data()
 }
