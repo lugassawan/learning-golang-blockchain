@@ -16,6 +16,11 @@ type UTXOSet struct {
 	blockchain *blockchain.Blockchain
 }
 
+// NewUTXOSet creates instance UTXOSet
+func NewUTXOSet(blockchain *blockchain.Blockchain) *UTXOSet {
+	return &UTXOSet{blockchain}
+}
+
 func (utx *UTXOSet) Blockchain() *blockchain.Blockchain {
 	return utx.blockchain
 }
