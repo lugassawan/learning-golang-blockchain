@@ -15,8 +15,8 @@ const version = byte(0x00)
 
 // Wallet stores private and public keys
 type Wallet struct {
-	privateKey ecdsa.PrivateKey
-	publicKey  []byte
+	PrivateKey ecdsa.PrivateKey
+	PublicKey  []byte
 }
 
 // NewWallet creates and returns a Wallet
@@ -25,17 +25,17 @@ func NewWallet() *Wallet {
 	return &Wallet{private, public}
 }
 
-func (w *Wallet) PrivateKey() ecdsa.PrivateKey {
-	return w.privateKey
+func (w *Wallet) GetPrivateKey() ecdsa.PrivateKey {
+	return w.PrivateKey
 }
 
-func (w *Wallet) PublicKey() []byte {
-	return w.publicKey
+func (w *Wallet) GetPublicKey() []byte {
+	return w.PublicKey
 }
 
 // GetAddress returns wallet address
 func (w *Wallet) GetAddress() []byte {
-	pubKeyHash := utils.HashPubKey(w.publicKey)
+	pubKeyHash := utils.HashPubKey(w.GetPublicKey())
 
 	versionedPayload := append([]byte{version}, pubKeyHash...)
 	checksum := utils.Checksum(versionedPayload)
@@ -51,7 +51,7 @@ func (w *Wallet) CreateTransaction(to string, amount int, UTXOSet *chainstate.UT
 	var inputs []transaction.TXInput
 	var outputs []transaction.TXOutput
 
-	pubKeyHash := utils.HashPubKey(w.publicKey)
+	pubKeyHash := utils.HashPubKey(w.GetPublicKey())
 	acc, validOutputs := UTXOSet.FindSpendableOutputs(pubKeyHash, amount)
 
 	if acc < amount {
@@ -66,7 +66,7 @@ func (w *Wallet) CreateTransaction(to string, amount int, UTXOSet *chainstate.UT
 		}
 
 		for _, out := range outs {
-			inputs = append(inputs, *transaction.NewTXInput(txID, out, nil, w.publicKey))
+			inputs = append(inputs, *transaction.NewTXInput(txID, out, nil, w.GetPublicKey()))
 		}
 	}
 
@@ -78,7 +78,7 @@ func (w *Wallet) CreateTransaction(to string, amount int, UTXOSet *chainstate.UT
 	}
 
 	tx := transaction.BuildTransaction(inputs, outputs)
-	UTXOSet.Blockchain().SignTransaction(tx, w.privateKey)
+	UTXOSet.Blockchain().SignTransaction(tx, w.GetPrivateKey())
 
 	return tx
 }

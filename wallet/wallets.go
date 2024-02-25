@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"crypto/elliptic"
 	"encoding/gob"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 )
@@ -13,7 +15,7 @@ const walletFile = "./database/wallet_%s.dat"
 
 // Wallets stores a collection of wallets
 type Wallets struct {
-	wallets map[string]*Wallet
+	Wallets map[string]*Wallet
 }
 
 // NewWallets creates Wallets and fills it from a file if it exists
@@ -26,8 +28,8 @@ func NewWallets(nodeID string) (*Wallets, error) {
 	return &wallets, err
 }
 
-func (ws *Wallets) Wallets() map[string]*Wallet {
-	return ws.wallets
+func (ws *Wallets) GetWallets() map[string]*Wallet {
+	return ws.Wallets
 }
 
 // CreateWallet adds a Wallet to Wallets
@@ -35,7 +37,7 @@ func (ws *Wallets) CreateWallet() string {
 	wallet := NewWallet()
 	address := fmt.Sprintf("%s", wallet.GetAddress())
 
-	ws.wallets[address] = wallet
+	ws.Wallets[address] = wallet
 	return address
 }
 
@@ -43,7 +45,7 @@ func (ws *Wallets) CreateWallet() string {
 func (ws *Wallets) GetAddresses() []string {
 	var addresses []string
 
-	for address := range ws.wallets {
+	for address := range ws.GetWallets() {
 		addresses = append(addresses, address)
 	}
 
@@ -52,14 +54,19 @@ func (ws *Wallets) GetAddresses() []string {
 
 // GetWallet returns a Wallet by its address
 func (ws *Wallets) GetWallet(address string) Wallet {
-	return *ws.wallets[address]
+	return *ws.Wallets[address]
 }
 
 // LoadFromFile loads wallets from the file
 func (ws *Wallets) LoadFromFile(nodeID string) error {
 	walletFile := fmt.Sprintf(walletFile, nodeID)
 	if _, err := os.Stat(walletFile); os.IsNotExist(err) {
-		return err
+		file, err := os.Create(walletFile)
+		if err != nil {
+			return err
+		}
+
+		defer file.Close()
 	}
 
 	fileContent, err := os.ReadFile(walletFile)
@@ -71,11 +78,14 @@ func (ws *Wallets) LoadFromFile(nodeID string) error {
 	gob.Register(elliptic.P256())
 	decoder := gob.NewDecoder(bytes.NewReader(fileContent))
 	err = decoder.Decode(&wallets)
-	if err != nil {
+	if err != nil && !errors.Is(err, io.EOF) {
 		log.Panic(err)
 	}
 
-	ws.wallets = wallets.wallets
+	if wallets.GetWallets() != nil {
+		ws.Wallets = wallets.GetWallets()
+	}
+
 	return nil
 }
 
@@ -100,5 +110,5 @@ func (ws Wallets) SaveToFile(nodeID string) {
 
 // init setup empty map of wallet
 func (ws *Wallets) init() {
-	ws.wallets = make(map[string]*Wallet)
+	ws.Wallets = make(map[string]*Wallet)
 }
